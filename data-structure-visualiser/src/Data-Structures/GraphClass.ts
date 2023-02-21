@@ -27,6 +27,15 @@ export class Graph<T> {
     })
   }
 
+  getVertexById(id:string):Vertex<string> | undefined {
+    for (const vertex of this.getVertices()){
+      if(vertex.value == id){
+        return vertex
+      }
+    }
+    return
+  }
+
   removeVertex(vertex: Vertex<T>) {
     this.adjacencyList.delete(vertex);
 
@@ -41,6 +50,14 @@ export class Graph<T> {
   }
 
   addEdge(vertex1: Vertex<T>, vertex2: Vertex<T>) {
+    if(vertex1 === vertex2){
+      if(this.adjacencyList.get(vertex1)?.includes(vertex1)){
+        return
+      }
+
+      this.adjacencyList.get(vertex1)?.push(vertex1)
+      return
+    }
     this.adjacencyList.get(vertex1)?.push(vertex2);
     this.adjacencyList.get(vertex2)?.push(vertex1);
   }
