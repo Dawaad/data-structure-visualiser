@@ -12,28 +12,30 @@ export class Graph<T> {
   //Graph Manipulation
 
   addVertex(newVertex: Vertex<T>) {
-      
-    if(this.getAllVertexValues().includes(newVertex.value)){
-      return
-    }  
-    
+    if (this.getAllVertexValues().includes(newVertex.value)) {
+      return;
+    }
+
     this.adjacencyList.set(newVertex, []);
-      
   }
 
-  getAllVertexValues(){
-    return [...this.adjacencyList.keys()].map(vertex => {
-      return vertex.value
-    })
+  getAllVertexValues() {
+    return [...this.adjacencyList.keys()].map((vertex) => {
+      return vertex.value;
+    });
   }
 
-  getVertexById(id:string):Vertex<string> | undefined {
-    for (const vertex of this.getVertices()){
-      if(vertex.value == id){
-        return vertex
+  getVertexById(id: string): Vertex<string> | undefined {
+    for (const vertex of this.getVertices()) {
+      if (vertex.value == id) {
+        return vertex;
       }
     }
-    return
+    return;
+  }
+
+  clearAll() {
+    this.adjacencyList = new Map()
   }
 
   removeVertex(vertex: Vertex<T>) {
@@ -50,13 +52,13 @@ export class Graph<T> {
   }
 
   addEdge(vertex1: Vertex<T>, vertex2: Vertex<T>) {
-    if(vertex1 === vertex2){
-      if(this.adjacencyList.get(vertex1)?.includes(vertex1)){
-        return
+    if (vertex1 === vertex2) {
+      if (this.adjacencyList.get(vertex1)?.includes(vertex1)) {
+        return;
       }
 
-      this.adjacencyList.get(vertex1)?.push(vertex1)
-      return
+      this.adjacencyList.get(vertex1)?.push(vertex1);
+      return;
     }
     this.adjacencyList.get(vertex1)?.push(vertex2);
     this.adjacencyList.get(vertex2)?.push(vertex1);

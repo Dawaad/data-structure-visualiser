@@ -4,9 +4,14 @@ import { useState, useRef } from "react";
 interface VertexProps<T> {
   vertex: Vertex<T>;
   onMove: (vertex: Vertex<T>, posX: number, posY: number) => void;
+  edgeSelection: boolean;
 }
 
-function VertexVisualisation<T>({ vertex, onMove }: VertexProps<T>) {
+function VertexVisualisation<T>({
+  vertex,
+  onMove,
+  edgeSelection,
+}: VertexProps<T>) {
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [position, setPosition] = useState({ x: vertex.x, y: vertex.y });
@@ -50,8 +55,6 @@ function VertexVisualisation<T>({ vertex, onMove }: VertexProps<T>) {
     setDragOffset({ x: 0, y: 0 });
   }
 
- 
-
   return (
     <div
       draggable
@@ -59,10 +62,12 @@ function VertexVisualisation<T>({ vertex, onMove }: VertexProps<T>) {
       onDrag={handleDrag}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
-      className={`w-20 h-20 rounded-full bg-green-400 absolute  flex justify-center items-center text-zinc-900 font-bold cursor-move`}
-      id = {vertex.value}
+      className={`w-10 h-10 rounded-full bg-green-400 absolute  flex justify-center items-center text-zinc-900 font-bold ${
+        edgeSelection ? `cursor-pointer` : `cursor-move`
+      }`}
+      id={vertex.value}
       style={{
-        left: `${position.x }px`,
+        left: `${position.x}px`,
         top: `${position.y}px`,
         position: "absolute",
       }}
