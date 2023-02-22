@@ -62,7 +62,7 @@ function VertexVisualisation<T>({ vertex, onMove }: VertexProps<T>) {
       className={`w-20 h-20 rounded-full bg-green-400 absolute  flex justify-center items-center text-zinc-900 font-bold cursor-move`}
       id = {vertex.value}
       style={{
-        left: `${position.x}px`,
+        left: `${position.x }px`,
         top: `${position.y}px`,
         position: "absolute",
       }}

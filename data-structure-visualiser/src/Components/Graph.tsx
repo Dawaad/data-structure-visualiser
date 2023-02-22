@@ -4,7 +4,9 @@ import { Vertex } from "../Data-Structures/VertexClass";
 import VertexVisualisation from "./Vertex";
 function GraphVisualisation() {
   const [graph, setGraph] = useState(new Graph());
-  const [vertices, setVertices] = useState<Map<string, { x: number, y: number }>>(new Map());
+  const [vertices, setVertices] = useState<
+    Map<string, { x: number; y: number }>
+  >(new Map());
   const [addEdgeMode, setAddEdgeMode] = useState<boolean>(false);
   const [firstSelectedVertex, setFirstSelectedVertex] = useState<
     Vertex<string> | undefined
@@ -29,10 +31,10 @@ function GraphVisualisation() {
     console.log(vertex);
     graph.addVertex(vertex);
     setVertices((vertices) => {
-      const newVertices = new Map(vertices)
-      newVertices.set(vertexInput, {x:vertex.x, y:vertex.y})
-      return newVertices
-    })
+      const newVertices = new Map(vertices);
+      newVertices.set(vertexInput, { x: vertex.x, y: vertex.y });
+      return newVertices;
+    });
     setVertexInput("");
   };
 
@@ -80,7 +82,7 @@ function GraphVisualisation() {
   });
 
   return (
-    <div className="w-full h-full">
+    <div className="w-screen h-full">
       <div>
         <form onSubmit={handleVertexAdd}>
           <input
@@ -127,24 +129,79 @@ function GraphVisualisation() {
             />
           );
         })}
-        <svg
-          viewBox={`0 0 ${
-            document.getElementById("graph-container")?.offsetWidth
-          } ${document.getElementById("graph-container")?.offsetHeight}`}
+        <svg width={"100%"} height={"100%"}
+         
         >
           {graph.getEdges().map((vertArr: [Vertex<string>, Vertex<string>]) => {
             const vert1 = vertArr[0];
             const vert2 = vertArr[1];
-            return (
-              <line
-                x1={(vertices.get(vert1.value)?.x as number) + (document.getElementById(vert1.value)?.offsetWidth as number)/2}
-                y1={(vertices.get(vert1.value)?.y as number) +(document.getElementById(vert1.value)?.offsetHeight as number)/2}
-                x2={(vertices.get(vert2.value)?.x as number) + (document.getElementById(vert1.value)?.offsetWidth as number)/2}
-                y2={(vertices.get(vert2.value)?.y as number) + (document.getElementById(vert1.value)?.offsetHeight as number)/2}
-                strokeWidth = "10"
-                stroke="white"
-              />
-            );
+
+            const vertHeight =
+              (document.getElementById(vert1.value)?.offsetHeight as number) /
+              2;
+            const vertWidth =
+              (document.getElementById(vert1.value)?.offsetWidth as number) / 2;
+            const controlPoint1 = {
+              x: (vertices.get(vert1.value)?.x as number) + 100,
+              y: (vertices.get(vert1.value)?.y as number) - 50,
+            };
+            const controlPoint2 = {
+              x: (vertices.get(vert1.value)?.x as number) - 100,
+              y: (vertices.get(vert1.value)?.y as number) + 50,
+            };
+            if (vert1 !== vert2) {
+              return (
+                <line
+                  x1={
+                    (vertices.get(vert1.value)?.x as number) +
+                    (document.getElementById(vert1.value)
+                      ?.offsetWidth as number) /
+                      2
+                  }
+                  y1={
+                    (vertices.get(vert1.value)?.y as number) +
+                    (document.getElementById(vert1.value)
+                      ?.offsetHeight as number) /
+                      2
+                  }
+                  x2={
+                    (vertices.get(vert2.value)?.x as number) +
+                    (document.getElementById(vert1.value)
+                      ?.offsetWidth as number) /
+                      2
+                  }
+                  y2={
+                    (vertices.get(vert2.value)?.y as number) +
+                    (document.getElementById(vert1.value)
+                      ?.offsetHeight as number) /
+                      2
+                  }
+                  strokeWidth="10"
+                  stroke="white"
+                />
+              );
+            } else {
+              return (
+                <path
+                  d={`M ${
+                    (vertices.get(vert1.value)?.x as number) + vertWidth
+                  },${
+                    (vertices.get(vert1.value)?.y as number) + vertHeight
+                  } Q ${controlPoint1.x + vertWidth},${
+                    controlPoint1.y + vertHeight + 50
+                  } ${(vertices.get(vert1.value)?.x as number) + vertWidth + 50},${
+                    (vertices.get(vert1.value)?.y as number) + vertHeight + 150
+                  } Q ${controlPoint2.x + vertWidth},${
+                    controlPoint2.y + vertHeight + 50
+                  } ${(vertices.get(vert1.value)?.x as number) + vertWidth},${
+                    (vertices.get(vert1.value)?.y as number) + vertHeight
+                  }`}
+                  stroke="white"
+                  fill="none"
+                  strokeWidth={10}
+                />
+              );
+            }
           })}
         </svg>
       </div>
