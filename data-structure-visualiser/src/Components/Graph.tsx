@@ -68,7 +68,8 @@ function GraphVisualisation() {
         graph.addEdge(
           edgeVertexSelect,
           graph.getVertexById(clickedDivId) as Vertex<string>,
-          0
+          0,
+          false
         );
         setEdgeCount(graph.getEdges().length);
         (
@@ -110,10 +111,17 @@ function GraphVisualisation() {
   };
 
   const handleEdgeRemovalEvent = (
-    vertex1: Vertex<string>,
-    vertex2: Vertex<string>
+    edge: Edge<string>
   ) => {
-    graph.removeEdge(vertex1, vertex2);
+    if(edge.directed){
+
+      graph.removeEdge(edge.vertex1, edge.vertex2);
+    }
+    else{
+      graph.removeEdge(edge.vertex1,edge.vertex2)
+      graph.removeEdge(edge.vertex2,edge.vertex1)
+    }
+    
     setEdgeCount(graph.getEdges().length);
   };
 
@@ -128,7 +136,7 @@ function GraphVisualisation() {
 
   useEffect(() => {
     console.log(graph.getEdges());
-    console.log(graph.getAdjacencyList())
+    console.log(graph.getAdjacencyList());
   });
 
   return (
@@ -202,21 +210,16 @@ function GraphVisualisation() {
               Remove Object
             </button>
           )}
-           <div>
+          <div>
             <button className="button relative">Run an Algorithm</button>
             <div className="absolute left-0  md:left-auto z-10 m-4 md:my-4 md:mx-0  md:-translate-x-20">
-              <ul className="w-[20rem] bg-zinc-600 text-center">
-                
-              </ul>
+              <ul className="w-[20rem] bg-zinc-600 text-center"></ul>
             </div>
           </div>
 
           <button className="button" onClick={handleClearAll}>
             Clear
           </button>
-         
-          
-          
         </div>
       </div>
       <div className="flex justify-center ">
@@ -249,22 +252,17 @@ function GraphVisualisation() {
             );
           })}
           <svg width={"100%"} height={"100%"}>
-            {graph
-              .getEdges()
-              .map(
-                (edge: Edge<string>, index: number) => {
-                  return (
-                    <EdgeVisualisation
-                      vert1={edge.vertex1}
-                      vert2={edge.vertex2}
-                      index={index}
-                      vertices={vertices}
-                      objectRemovalEvent={removeObjectMode}
-                      edgeRemovalCallback={handleEdgeRemovalEvent}
-                    />
-                  );
-                }
-              )}
+            {graph.getEdges().map((edge: Edge<string>, index: number) => {
+              return (
+                <EdgeVisualisation
+                  edge={edge}
+                  index={index}
+                  vertices={vertices}
+                  objectRemovalEvent={removeObjectMode}
+                  edgeRemovalCallback={handleEdgeRemovalEvent}
+                />
+              );
+            })}
           </svg>
         </div>
       </section>

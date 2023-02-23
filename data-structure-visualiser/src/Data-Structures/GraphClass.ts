@@ -53,7 +53,7 @@ export class Graph<T> {
     }
   }
 
-  addEdge(vertex1: Vertex<T>, vertex2: Vertex<T>, weight: number) {
+  addEdge(vertex1: Vertex<T>, vertex2: Vertex<T>, weight: number, directed:boolean) {
     if (vertex1 === vertex2) {
       if (
         this.adjacencyList.get(vertex1)?.find((edge) => {
@@ -62,12 +62,12 @@ export class Graph<T> {
       ) {
         return;
       }
-      const selfLoopEdge = new Edge(vertex1, vertex2, weight);
+      const selfLoopEdge = new Edge(vertex1, vertex2, weight, directed);
       this.adjacencyList.get(vertex1)?.push(selfLoopEdge);
       return;
     }
-    const edge1 = new Edge(vertex1, vertex2, weight);
-    const edge2 = new Edge(vertex2, vertex1, weight);
+    const edge1 = new Edge(vertex1, vertex2, weight, directed);
+    const edge2 = new Edge(vertex2, vertex1, weight, directed);
     this.adjacencyList.get(vertex1)?.push(edge1);
     this.adjacencyList.get(vertex2)?.push(edge2);
   }

@@ -1,51 +1,54 @@
 import React from "react";
 import { Vertex } from "../Data-Structures/VertexClass";
+import { Edge } from "../Data-Structures/EdgeClass";
+interface EdgeProps {
+  
+  edge: Edge<string>
 
-function EdgeVisualisation({
-  vert1,
-  vert2,
-  index,
-  vertices,
-  objectRemovalEvent,
-  edgeRemovalCallback,
-}: {
-  vert1: Vertex<string>;
-  vert2: Vertex<string>;
   index: number;
   vertices: Map<string, { x: number; y: number }>;
   objectRemovalEvent: boolean;
   edgeRemovalCallback: (
-    vertex1: Vertex<string>,
-    vertex2: Vertex<string>
+   edge: Edge<string>
   ) => void;
-}) {
+  
+}
+
+function EdgeVisualisation({
+  edge,
+  index,
+  vertices,
+  objectRemovalEvent,
+  edgeRemovalCallback,
+ 
+}: EdgeProps) {
   const vertHeight =
-    (document.getElementById(vert1.value)?.offsetHeight as number) / 2;
+    (document.getElementById(edge.vertex1.value)?.offsetHeight as number) / 2;
   const vertWidth =
-    (document.getElementById(vert1.value)?.offsetWidth as number) / 2;
+    (document.getElementById(edge.vertex1.value)?.offsetWidth as number) / 2;
   return (
     <>
-      {vert1 !== vert2 ? (
+      {edge.vertex1 !== edge.vertex2 ? (
         <line
           onClick={() => {
-            objectRemovalEvent ? edgeRemovalCallback(vert1, vert2) : undefined;
+            objectRemovalEvent ? edgeRemovalCallback(edge) : undefined;
           }}
           key={`edge${index}`}
           x1={
-            (vertices.get(vert1.value)?.x as number) +
-            (document.getElementById(vert1.value)?.offsetWidth as number) / 2
+            (vertices.get(edge.vertex1.value)?.x as number) +
+            (document.getElementById(edge.vertex1.value)?.offsetWidth as number) / 2
           }
           y1={
-            (vertices.get(vert1.value)?.y as number) +
-            (document.getElementById(vert1.value)?.offsetHeight as number) / 2
+            (vertices.get(edge.vertex1.value)?.y as number) +
+            (document.getElementById(edge.vertex1.value)?.offsetHeight as number) / 2
           }
           x2={
-            (vertices.get(vert2.value)?.x as number) +
-            (document.getElementById(vert1.value)?.offsetWidth as number) / 2
+            (vertices.get(edge.vertex2.value)?.x as number) +
+            (document.getElementById(edge.vertex1.value)?.offsetWidth as number) / 2
           }
           y2={
-            (vertices.get(vert2.value)?.y as number) +
-            (document.getElementById(vert1.value)?.offsetHeight as number) / 2
+            (vertices.get(edge.vertex2.value)?.y as number) +
+            (document.getElementById(edge.vertex1.value)?.offsetHeight as number) / 2
           }
           className={`stroke-[10] stroke-white ${
             objectRemovalEvent ? "hover:stroke-red-300" : ""
@@ -53,10 +56,10 @@ function EdgeVisualisation({
         />
       ) : (
         <circle
-          cx={(vertices.get(vert1.value)?.x as number) - vertWidth / 2}
-          cy={vertices.get(vert1.value)?.y as number}
+          cx={(vertices.get(edge.vertex1.value)?.x as number) - vertWidth / 2}
+          cy={vertices.get(edge.vertex1.value)?.y as number}
           onClick={() => {
-            objectRemovalEvent ? edgeRemovalCallback(vert1, vert2) : undefined;
+            objectRemovalEvent ? edgeRemovalCallback(edge) : undefined;
           }}
           r={vertHeight * 2}
           className={`stroke-[10] stroke-white fill-transparent ${
