@@ -1,16 +1,23 @@
 import React from "react";
 import { Vertex } from "../Data-Structures/VertexClass";
 
-function Edge({
+function EdgeVisualisation({
   vert1,
   vert2,
   index,
   vertices,
+  objectRemovalEvent,
+  edgeRemovalCallback,
 }: {
   vert1: Vertex<string>;
   vert2: Vertex<string>;
   index: number;
   vertices: Map<string, { x: number; y: number }>;
+  objectRemovalEvent: boolean;
+  edgeRemovalCallback: (
+    vertex1: Vertex<string>,
+    vertex2: Vertex<string>
+  ) => void;
 }) {
   const vertHeight =
     (document.getElementById(vert1.value)?.offsetHeight as number) / 2;
@@ -20,6 +27,9 @@ function Edge({
     <>
       {vert1 !== vert2 ? (
         <line
+          onClick={() => {
+            objectRemovalEvent ? edgeRemovalCallback(vert1, vert2) : undefined;
+          }}
           key={`edge${index}`}
           x1={
             (vertices.get(vert1.value)?.x as number) +
@@ -37,21 +47,25 @@ function Edge({
             (vertices.get(vert2.value)?.y as number) +
             (document.getElementById(vert1.value)?.offsetHeight as number) / 2
           }
-          strokeWidth="10"
-          stroke="white"
+          className={`stroke-[10] stroke-white ${
+            objectRemovalEvent ? "hover:stroke-red-300" : ""
+          }`}
         />
       ) : (
         <circle
           cx={(vertices.get(vert1.value)?.x as number) - vertWidth / 2}
           cy={vertices.get(vert1.value)?.y as number}
+          onClick={() => {
+            objectRemovalEvent ? edgeRemovalCallback(vert1, vert2) : undefined;
+          }}
           r={vertHeight * 2}
-          stroke={"white"}
-          strokeWidth={10}
-          fill="transparent"
+          className={`stroke-[10] stroke-white fill-transparent ${
+            objectRemovalEvent ? "hover:stroke-red-300" : ""
+          }`}
         />
       )}
     </>
   );
 }
 
-export default Edge;
+export default EdgeVisualisation;

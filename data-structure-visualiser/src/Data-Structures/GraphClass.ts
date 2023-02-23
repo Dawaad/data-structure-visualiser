@@ -1,9 +1,10 @@
 import { Vertex } from "./VertexClass";
+import { Edge } from "./EdgeClass";
 
 export class Graph<T> {
   //Initialisation
 
-  adjacencyList: Map<Vertex<T>, Array<Vertex<T>>>;
+  adjacencyList: Map<Vertex<T>, Array<Edge<T>>>;
 
   constructor() {
     this.adjacencyList = new Map();
@@ -35,7 +36,7 @@ export class Graph<T> {
   }
 
   clearAll() {
-    this.adjacencyList = new Map()
+    this.adjacencyList = new Map();
   }
 
   removeVertex(vertex: Vertex<T>) {
@@ -45,33 +46,46 @@ export class Graph<T> {
     for (const adjacentVertex of this.adjacencyList.keys()) {
       this.adjacencyList.set(
         adjacentVertex,
-        this.adjacencyList.get(adjacentVertex)?.filter((v) => v !== vertex) ??
-          []
+        this.adjacencyList.get(adjacentVertex)?.filter((edge) => {
+          return edge.vertex1 !== vertex && edge.vertex2 !== vertex;
+        }) ?? []
       );
     }
   }
 
-  addEdge(vertex1: Vertex<T>, vertex2: Vertex<T>) {
+  addEdge(vertex1: Vertex<T>, vertex2: Vertex<T>, weight: number) {
     if (vertex1 === vertex2) {
-      if (this.adjacencyList.get(vertex1)?.includes(vertex1)) {
+      if (
+        this.adjacencyList.get(vertex1)?.find((edge) => {
+          return edge.vertex1 === vertex1 && edge.vertex2 === vertex2;
+        })
+      ) {
         return;
       }
-
-      this.adjacencyList.get(vertex1)?.push(vertex1);
+      const selfLoopEdge = new Edge(vertex1, vertex2, weight);
+      this.adjacencyList.get(vertex1)?.push(selfLoopEdge);
       return;
     }
-    this.adjacencyList.get(vertex1)?.push(vertex2);
-    this.adjacencyList.get(vertex2)?.push(vertex1);
+    const edge1 = new Edge(vertex1, vertex2, weight);
+    const edge2 = new Edge(vertex2, vertex1, weight);
+    this.adjacencyList.get(vertex1)?.push(edge1);
+    this.adjacencyList.get(vertex2)?.push(edge2);
   }
-
   removeEdge(vertex1: Vertex<T>, vertex2: Vertex<T>) {
+    const edgeToRemove = this.adjacencyList.get(vertex1)?.find((edge) => {
+      return edge.vertex1 === vertex1 && edge.vertex2 === vertex2;
+    });
     this.adjacencyList.set(
       vertex1,
-      this.adjacencyList.get(vertex1)?.filter((v) => v !== vertex2) ?? []
+      this.adjacencyList
+        .get(vertex1)
+        ?.filter((edge) => edge !== edgeToRemove) ?? []
     );
     this.adjacencyList.set(
       vertex2,
-      this.adjacencyList.get(vertex2)?.filter((v) => v !== vertex1) ?? []
+      this.adjacencyList
+        .get(vertex2)
+        ?.filter((edge) => edge !== edgeToRemove) ?? []
     );
   }
 
@@ -82,11 +96,13 @@ export class Graph<T> {
   }
 
   getEdges() {
-    const edges: Array<[Vertex<T>, Vertex<T>]> = [];
+    const edges: Array<Edge<T>> = [];
 
-    for (const [vertex, adjacentVertices] of this.adjacencyList) {
-      for (const adjacentVertex of adjacentVertices) {
-        edges.push([vertex, adjacentVertex]);
+    for (const adjacentEdges of this.adjacencyList.values()) {
+      for (const edge of adjacentEdges) {
+        if (!edges.includes(edge)) {
+          edges.push(edge);
+        }
       }
     }
 
@@ -97,40 +113,70 @@ export class Graph<T> {
     return this.adjacencyList;
   }
 
-  // Graph Functions
+  // Graph Algorithns
 
   bfs(startVertex: Vertex<T>, visit: (vertex: Vertex<T>) => void) {
     const visited = new Set<Vertex<T>>();
-    const queue = [startVertex];
-    visited.add(startVertex);
+    const queue: Array<Edge<T>> = [];
+    const startEdges: Array<Edge<T>> = this.getEdges().filter(
+      (edge) => edge.vertex1 === startVertex || edge.vertex2 === startVertex
+    );
+    startEdges.forEach((edge) => queue.push(edge));
 
     while (queue.length > 0) {
-      const current = queue.shift()!;
-      visit(current);
+      const currentEdge = queue.shift()!;
+      const current =
+        currentEdge.vertex1 === startVertex
+          ? currentEdge.vertex2
+          : currentEdge.vertex1;
 
-      for (const adjacent of this.adjacencyList.get(current) ?? []) {
-        if (!visited.has(adjacent)) {
-          visited.add(adjacent);
-          queue.push(adjacent);
-        }
+      if (!visited.has(current)) {
+        visited.add(current);
+        visit(current);
+
+        const adjacentEdges: Array<Edge<T>> = this.getEdges().filter(
+          (edge) =>
+            (edge.vertex1 === current || edge.vertex2 === current) &&
+            edge !== currentEdge
+        );
+        adjacentEdges.forEach((edge) => {
+          const adjacentVertex =
+            edge.vertex1 === current ? edge.vertex2 : edge.vertex1;
+          queue.push(edge);
+        });
       }
     }
   }
 
   dfs(startVertex: Vertex<T>, visit: (vertex: Vertex<T>) => void) {
     const visited = new Set<Vertex<T>>();
-    const stack = [startVertex];
+    const stack: Array<Edge<T>> = [];
+    const startEdges: Array<Edge<T>> = this.getEdges().filter(
+      (edge) => edge.vertex1 === startVertex || edge.vertex2 === startVertex
+    );
+    startEdges.forEach((edge) => stack.push(edge));
 
     while (stack.length > 0) {
-      const current = stack.pop()!;
-      visit(current);
+      const currentEdge = stack.pop()!;
+      const current =
+        currentEdge.vertex1 === startVertex
+          ? currentEdge.vertex2
+          : currentEdge.vertex1;
 
-      visited.add(current);
+      if (!visited.has(current)) {
+        visited.add(current);
+        visit(current);
 
-      for (const adjacent of this.adjacencyList.get(current) ?? []) {
-        if (!visited.has(adjacent)) {
-          stack.push(adjacent);
-        }
+        const adjacentEdges: Array<Edge<T>> = this.getEdges().filter(
+          (edge) =>
+            (edge.vertex1 === current || edge.vertex2 === current) &&
+            edge !== currentEdge
+        );
+        adjacentEdges.forEach((edge) => {
+          const adjacentVertex =
+            edge.vertex1 === current ? edge.vertex2 : edge.vertex1;
+          stack.push(edge);
+        });
       }
     }
   }

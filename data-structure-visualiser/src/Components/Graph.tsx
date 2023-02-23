@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
+import { Edge } from "../Data-Structures/EdgeClass";
 import { Graph } from "../Data-Structures/GraphClass";
 import { Vertex } from "../Data-Structures/VertexClass";
-import Edge from "./Edge";
+import EdgeVisualisation from "./Edge";
 import VertexVisualisation from "./Vertex";
 function GraphVisualisation() {
   const [graph, setGraph] = useState(new Graph());
   const [vertexCount, setVertexCount] = useState<number>(1);
-
+  const [edgeCount, setEdgeCount] = useState<number>(0);
   const [vertices, setVertices] = useState<
     Map<string, { x: number; y: number }>
   >(new Map());
@@ -15,19 +16,19 @@ function GraphVisualisation() {
   );
   const [addEdgeMode, setAddEdgeMode] = useState<boolean>(false);
   const [addVertexMode, setAddVertexMode] = useState<boolean>(false);
-  const [removeObjectMode, setRemoveObjectMode] = useState<boolean>(false)
+  const [removeObjectMode, setRemoveObjectMode] = useState<boolean>(false);
   const [edgeVertexSelect, setEdgeVertexSelect] = useState<
     Vertex<string> | undefined
   >(undefined);
 
   const refreshSelected = () => {
     setEdgeVertexSelect(undefined);
-    
   };
 
   const refreshSetActions = () => {
     setAddEdgeMode(false);
     setAddVertexMode(false);
+    setRemoveObjectMode(false);
     setMessage("");
   };
 
@@ -50,11 +51,13 @@ function GraphVisualisation() {
         })
         .includes(clickedDivId)
     ) {
+      (document.getElementById(clickedDivId) as HTMLElement).classList.add(
+        "bg-yellow-300"
+      );
       setEdgeVertexSelect(graph.getVertexById(clickedDivId));
       setMessage("Select the second vertex");
     }
     if (edgeVertexSelect) {
-     
       if (
         [...graph.adjacencyList.keys()]
           .map((vertex) => {
@@ -64,10 +67,18 @@ function GraphVisualisation() {
       ) {
         graph.addEdge(
           edgeVertexSelect,
-          graph.getVertexById(clickedDivId) as Vertex<string>
+          graph.getVertexById(clickedDivId) as Vertex<string>,
+          0
+        );
+        setEdgeCount(graph.getEdges().length);
+        (
+          document.getElementById(edgeVertexSelect.value) as HTMLElement
+        ).classList.remove("bg-yellow-300");
+        (document.getElementById(clickedDivId) as HTMLElement).classList.remove(
+          "bg-yellow-300"
         );
         refreshSelected();
-        setMessage('Select the first vertex')
+        setMessage("Select the first vertex");
       }
     }
   };
@@ -84,8 +95,8 @@ function GraphVisualisation() {
     console.log(event.clientY);
     const newVertex = new Vertex(
       vertexCount.toString(),
-      event.clientX -100,
-      event.clientY -175
+      event.clientX - 100,
+      event.clientY - 175
     );
     graph.addVertex(newVertex);
     setVertices((vertices) => {
@@ -98,8 +109,26 @@ function GraphVisualisation() {
     });
   };
 
+  const handleEdgeRemovalEvent = (
+    vertex1: Vertex<string>,
+    vertex2: Vertex<string>
+  ) => {
+    graph.removeEdge(vertex1, vertex2);
+    setEdgeCount(graph.getEdges().length);
+  };
+
+  const handleVertexRemovalEvent = (vertex: Vertex<string>) => {
+    graph.removeVertex(vertex);
+    setVertices((vertices) => {
+      const newVertices = new Map(vertices);
+      newVertices.delete(vertex.value);
+      return newVertices;
+    });
+  };
+
   useEffect(() => {
     console.log(graph.getEdges());
+    console.log(graph.getAdjacencyList())
   });
 
   return (
@@ -151,15 +180,43 @@ function GraphVisualisation() {
               Add Edge
             </button>
           )}
-          <button className="button">
-            Remove Object
-          </button>
+          {removeObjectMode ? (
+            <button
+              className="button bg-red-300"
+              onClick={() => {
+                setRemoveObjectMode(false);
+                setMessage("");
+              }}
+            >
+              Cancel
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                refreshSetActions();
+                setRemoveObjectMode(true);
+                setMessage("Select the objects to be deleted");
+              }}
+              className="button"
+            >
+              Remove Object
+            </button>
+          )}
+           <div>
+            <button className="button relative">Run an Algorithm</button>
+            <div className="absolute left-0  md:left-auto z-10 m-4 md:my-4 md:mx-0  md:-translate-x-20">
+              <ul className="w-[20rem] bg-zinc-600 text-center">
+                
+              </ul>
+            </div>
+          </div>
+
           <button className="button" onClick={handleClearAll}>
             Clear
           </button>
-          <button className="button">
-            Run an Algorithm
-          </button>
+         
+          
+          
         </div>
       </div>
       <div className="flex justify-center ">
@@ -186,6 +243,8 @@ function GraphVisualisation() {
                 key={vertex.value}
                 onMove={handleVertexMove}
                 edgeSelection={addEdgeMode}
+                objectRemovalEvent={removeObjectMode}
+                vertexRemovalCallback={handleVertexRemovalEvent}
               />
             );
           })}
@@ -193,8 +252,17 @@ function GraphVisualisation() {
             {graph
               .getEdges()
               .map(
-                (vertArr: [Vertex<string>, Vertex<string>], index: number) => {
-                  return <Edge vert1={vertArr[0]} vert2={vertArr[1]} index = {index} vertices={vertices}/>
+                (edge: Edge<string>, index: number) => {
+                  return (
+                    <EdgeVisualisation
+                      vert1={edge.vertex1}
+                      vert2={edge.vertex2}
+                      index={index}
+                      vertices={vertices}
+                      objectRemovalEvent={removeObjectMode}
+                      edgeRemovalCallback={handleEdgeRemovalEvent}
+                    />
+                  );
                 }
               )}
           </svg>

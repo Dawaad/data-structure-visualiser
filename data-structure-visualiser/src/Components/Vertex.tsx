@@ -5,12 +5,17 @@ interface VertexProps<T> {
   vertex: Vertex<T>;
   onMove: (vertex: Vertex<T>, posX: number, posY: number) => void;
   edgeSelection: boolean;
+  objectRemovalEvent: boolean;
+  vertexRemovalCallback: (vertex: Vertex<string>) => void;
 }
 
 function VertexVisualisation<T>({
   vertex,
   onMove,
   edgeSelection,
+  objectRemovalEvent,
+  vertexRemovalCallback,
+  
 }: VertexProps<T>) {
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -62,9 +67,14 @@ function VertexVisualisation<T>({
       onDrag={handleDrag}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
+      onClick={() => {
+        objectRemovalEvent ? vertexRemovalCallback(vertex) : undefined;
+      }}
       className={`w-10 h-10 rounded-full bg-green-400 absolute  flex justify-center items-center text-zinc-900 font-bold ${
         edgeSelection ? `cursor-pointer` : `cursor-move`
-      }`}
+      }
+      ${objectRemovalEvent ? "hover:bg-red-300" : ""}
+      `}
       id={vertex.value}
       style={{
         left: `${position.x}px`,
