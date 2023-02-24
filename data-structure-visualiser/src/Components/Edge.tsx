@@ -33,7 +33,7 @@ function EdgeVisualisation({
           onClick={() => {
             objectRemovalEvent ? edgeRemovalCallback(edge) : undefined;
           }}
-          key={`edge${index}`}
+          id={`edge-${edge.vertex1.value}-${edge.vertex2.value}`}
           x1={
             (vertices.get(edge.vertex1.value)?.x as number) +
             (document.getElementById(edge.vertex1.value)?.offsetWidth as number) / 2
@@ -58,6 +58,7 @@ function EdgeVisualisation({
         <circle
           cx={(vertices.get(edge.vertex1.value)?.x as number) - vertWidth / 2}
           cy={vertices.get(edge.vertex1.value)?.y as number}
+          id={`edge-${edge.vertex1.value}-${edge.vertex2.value}`}
           onClick={() => {
             objectRemovalEvent ? edgeRemovalCallback(edge) : undefined;
           }}
