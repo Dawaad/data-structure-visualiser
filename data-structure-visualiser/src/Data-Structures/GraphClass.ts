@@ -1,6 +1,6 @@
 import { Vertex } from "./VertexClass";
 import { Edge } from "./EdgeClass";
-
+import { PriorityQueue } from "./PriorityQueue";
 export class Graph<T> {
   //Initialisation
 
@@ -53,7 +53,13 @@ export class Graph<T> {
     }
   }
 
-  addEdge(vertex1: Vertex<T>, vertex2: Vertex<T>, weight: number, directed:boolean) {
+  addEdge(
+    vertex1: Vertex<T>,
+    vertex2: Vertex<T>,
+    weight: number,
+    directed: boolean,
+    id: string
+  ) {
     if (vertex1 === vertex2) {
       if (
         this.adjacencyList.get(vertex1)?.find((edge) => {
@@ -62,12 +68,12 @@ export class Graph<T> {
       ) {
         return;
       }
-      const selfLoopEdge = new Edge(vertex1, vertex2, weight, directed);
+      const selfLoopEdge = new Edge(vertex1, vertex2, weight, directed, id);
       this.adjacencyList.get(vertex1)?.push(selfLoopEdge);
       return;
     }
-    const edge1 = new Edge(vertex1, vertex2, weight, directed);
-    const edge2 = new Edge(vertex2, vertex1, weight, directed);
+    const edge1 = new Edge(vertex1, vertex2, weight, directed, id);
+    const edge2 = new Edge(vertex2, vertex1, weight, directed, id);
     this.adjacencyList.get(vertex1)?.push(edge1);
     this.adjacencyList.get(vertex2)?.push(edge2);
   }
@@ -109,13 +115,26 @@ export class Graph<T> {
     return edges;
   }
 
+  getEdge(vertex1: Vertex<T>, vertex2: Vertex<T>): Edge<T>[] | null {
+    const edges = this.getEdges().filter((edge) => {
+      return (
+        (edge.vertex1 === vertex1 && edge.vertex2 === vertex2) ||
+        (edge.vertex1 === vertex2 && edge.vertex2 === vertex1)
+      );
+    });
+    return edges.length > 0 ? edges : null;
+  }
+
   getAdjacencyList() {
     return this.adjacencyList;
   }
 
   // Graph Algorithns
 
-  bfs(startVertex: Vertex<T>, visit: (vertex: Vertex<T>) => void) {
+  bfs(
+    startVertex: Vertex<T>,
+    visit: (vertex: Vertex<T>, prevEdge?: Edge<T>) => void
+  ) {
     const visited = new Set<Vertex<T>>();
     const queue: Array<Edge<T>> = [];
     const startEdges: Array<Edge<T>> = this.getEdges().filter(
@@ -132,7 +151,7 @@ export class Graph<T> {
 
       if (!visited.has(current)) {
         visited.add(current);
-        visit(current);
+        visit(current, currentEdge);
 
         const adjacentEdges: Array<Edge<T>> = this.getEdges().filter(
           (edge) =>
@@ -175,9 +194,14 @@ export class Graph<T> {
         adjacentEdges.forEach((edge) => {
           const adjacentVertex =
             edge.vertex1 === current ? edge.vertex2 : edge.vertex1;
+
           stack.push(edge);
         });
       }
     }
+  }
+
+  compareEdges(a: Edge<T>, b: Edge<T>) {
+    return a.weight - b.weight;
   }
 }
