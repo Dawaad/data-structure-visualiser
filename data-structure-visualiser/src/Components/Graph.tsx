@@ -17,9 +17,27 @@ function GraphVisualisation() {
   const [addEdgeMode, setAddEdgeMode] = useState<boolean>(false);
   const [addVertexMode, setAddVertexMode] = useState<boolean>(false);
   const [removeObjectMode, setRemoveObjectMode] = useState<boolean>(false);
+  const [runBFS, setRunBFS] = useState<boolean>(false);
   const [edgeVertexSelect, setEdgeVertexSelect] = useState<
     Vertex<string> | undefined
   >(undefined);
+
+
+  {/*
+const clickBehaviors = {
+  delete: () => {
+    // delete the vertex
+  },
+  highlight: () => {
+    // highlight the vertex
+  },
+  // add more click behaviors here
+};
+
+function handleVertexClick() {
+  clickBehaviors[buttonState]();
+}
+*/}
 
   const refreshSelected = () => {
     setEdgeVertexSelect(undefined);
@@ -29,6 +47,7 @@ function GraphVisualisation() {
     setAddEdgeMode(false);
     setAddVertexMode(false);
     setRemoveObjectMode(false);
+    setRunBFS(false);
     setMessage("");
   };
 
@@ -39,6 +58,49 @@ function GraphVisualisation() {
       return newVertices;
     });
   }
+
+  const applyStylingToVisited = (visited: Edge<string>[]) => {
+      
+      visited.forEach(edge => {
+        if(!edge.directed){
+          document.getElementById(`edge-${edge.vertex1.value}-${edge.vertex2.value}`)?.classList.add('stroke-orange-300')
+          document.getElementById(`edge-${edge.vertex2.value}-${edge.vertex1.value}`)?.classList.add('stroke-orange-300')
+
+        }
+      })
+  }
+
+  const handleBFS = (event: React.MouseEvent<HTMLDivElement>) => {
+    const clickDiv = event.target as HTMLDivElement;
+    const clickedDivId = clickDiv.id;
+    const visitedVertices: Vertex<string>[] = [];
+    const visitedEdges: Edge<string>[] =[];
+    if (
+      [...graph.adjacencyList.keys()]
+        .map((vertex) => {
+          return vertex.value;
+        })
+        .includes(clickedDivId)
+    ) {
+      setMessage(`Breadth First Search Path: ${clickedDivId}`);
+      graph.bfs(
+        graph.getVertexById(clickedDivId) as Vertex<string>,
+        (vertex, edge) => {
+          ;
+          visitedVertices.push(vertex);
+          if(edge){
+            visitedEdges.push(edge)
+          }
+          setMessage((prev) => {
+            return prev.concat(` -> ${vertex.value} `);
+          });
+        }
+      );
+      applyStylingToVisited(visitedEdges)
+          
+     
+    }
+  };
 
   const handleSelectEdgeEvent = (event: React.MouseEvent<HTMLDivElement>) => {
     const clickedDiv = event.target as HTMLDivElement;
@@ -69,7 +131,8 @@ function GraphVisualisation() {
           edgeVertexSelect,
           graph.getVertexById(clickedDivId) as Vertex<string>,
           0,
-          false
+          false,
+          `edge-${edgeVertexSelect.value}-${clickedDivId}`
         );
         setEdgeCount(graph.getEdges().length);
         (
@@ -94,10 +157,11 @@ function GraphVisualisation() {
   const handleAddVerticeEvent = (event: React.MouseEvent<HTMLDivElement>) => {
     console.log(event.clientX);
     console.log(event.clientY);
+    const parentdiv = document.getElementById("graph-container") as HTMLElement;
     const newVertex = new Vertex(
       vertexCount.toString(),
-      event.clientX - 100,
-      event.clientY - 175
+      event.clientX - parentdiv.offsetLeft * 1.1,
+      event.clientY - parentdiv.offsetTop * 1.1
     );
     graph.addVertex(newVertex);
     setVertices((vertices) => {
@@ -110,18 +174,14 @@ function GraphVisualisation() {
     });
   };
 
-  const handleEdgeRemovalEvent = (
-    edge: Edge<string>
-  ) => {
-    if(edge.directed){
-
+  const handleEdgeRemovalEvent = (edge: Edge<string>) => {
+    if (edge.directed) {
       graph.removeEdge(edge.vertex1, edge.vertex2);
+    } else {
+      graph.removeEdge(edge.vertex1, edge.vertex2);
+      graph.removeEdge(edge.vertex2, edge.vertex1);
     }
-    else{
-      graph.removeEdge(edge.vertex1,edge.vertex2)
-      graph.removeEdge(edge.vertex2,edge.vertex1)
-    }
-    
+
     setEdgeCount(graph.getEdges().length);
   };
 
@@ -134,10 +194,10 @@ function GraphVisualisation() {
     });
   };
 
-  useEffect(() => {
-    console.log(graph.getEdges());
-    console.log(graph.getAdjacencyList());
-  });
+  // useEffect(() => {
+  //   console.log(graph.getEdges());
+  //   console.log(graph.getAdjacencyList());
+  // });
 
   return (
     <div className="w-screen h-full">
@@ -211,7 +271,16 @@ function GraphVisualisation() {
             </button>
           )}
           <div>
-            <button className="button relative">Run an Algorithm</button>
+            <button
+              onClick={() => {
+                refreshSetActions();
+                setRunBFS(true);
+                setMessage("Select starting vertex");
+              }}
+              className="button relative"
+            >
+              Run an Algorithm
+            </button>
             <div className="absolute left-0  md:left-auto z-10 m-4 md:my-4 md:mx-0  md:-translate-x-20">
               <ul className="w-[20rem] bg-zinc-600 text-center"></ul>
             </div>
@@ -235,6 +304,8 @@ function GraphVisualisation() {
               ? handleSelectEdgeEvent
               : addVertexMode
               ? handleAddVerticeEvent
+              : runBFS
+              ? handleBFS
               : undefined
           }
           id="graph-container"
@@ -256,6 +327,7 @@ function GraphVisualisation() {
               return (
                 <EdgeVisualisation
                   edge={edge}
+                  key={`edge${index}`}
                   index={index}
                   vertices={vertices}
                   objectRemovalEvent={removeObjectMode}
