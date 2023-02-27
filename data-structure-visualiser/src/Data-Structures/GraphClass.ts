@@ -60,22 +60,22 @@ export class Graph<T> {
     directed: boolean,
     id: string
   ) {
+    if (this.doesEdgeExist(vertex1, vertex2)) {
+      return;
+    }
     if (vertex1 === vertex2) {
-      if (
-        this.adjacencyList.get(vertex1)?.find((edge) => {
-          return edge.vertex1 === vertex1 && edge.vertex2 === vertex2;
-        })
-      ) {
-        return;
-      }
       const selfLoopEdge = new Edge(vertex1, vertex2, weight, directed, id);
       this.adjacencyList.get(vertex1)?.push(selfLoopEdge);
       return;
     }
     const edge1 = new Edge(vertex1, vertex2, weight, directed, id);
-    const edge2 = new Edge(vertex2, vertex1, weight, directed, id);
-    this.adjacencyList.get(vertex1)?.push(edge1);
-    this.adjacencyList.get(vertex2)?.push(edge2);
+    if (!directed) {
+      const edge2 = new Edge(vertex2, vertex1, weight, directed, id);
+      this.adjacencyList.get(vertex1)?.push(edge1);
+      this.adjacencyList.get(vertex2)?.push(edge2);
+    } else {
+      this.adjacencyList.get(vertex1)?.push(edge1);
+    }
   }
   removeEdge(vertex1: Vertex<T>, vertex2: Vertex<T>) {
     const edgeToRemove = this.adjacencyList.get(vertex1)?.find((edge) => {
@@ -93,6 +93,12 @@ export class Graph<T> {
         .get(vertex2)
         ?.filter((edge) => edge !== edgeToRemove) ?? []
     );
+  }
+
+  doesEdgeExist(vertex1: Vertex<T>, vertex2: Vertex<T>) {
+    return this.adjacencyList.get(vertex1)?.find((edge) => {
+      return edge.vertex1 === vertex1 && edge.vertex2 === vertex2;
+    });
   }
 
   // Getting Graph Data
@@ -167,7 +173,10 @@ export class Graph<T> {
     }
   }
 
-  dfs(startVertex: Vertex<T>, visit: (vertex: Vertex<T>, edge:Edge<T>) => void) {
+  dfs(
+    startVertex: Vertex<T>,
+    visit: (vertex: Vertex<T>, edge: Edge<T>) => void
+  ) {
     const visited = new Set<Vertex<T>>();
     const stack: Array<Edge<T>> = [];
     const startEdges: Array<Edge<T>> = this.getEdges().filter(
