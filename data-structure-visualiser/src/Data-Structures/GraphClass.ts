@@ -167,7 +167,7 @@ export class Graph<T> {
     }
   }
 
-  dfs(startVertex: Vertex<T>, visit: (vertex: Vertex<T>) => void) {
+  dfs(startVertex: Vertex<T>, visit: (vertex: Vertex<T>, edge:Edge<T>) => void) {
     const visited = new Set<Vertex<T>>();
     const stack: Array<Edge<T>> = [];
     const startEdges: Array<Edge<T>> = this.getEdges().filter(
@@ -184,7 +184,7 @@ export class Graph<T> {
 
       if (!visited.has(current)) {
         visited.add(current);
-        visit(current);
+        visit(current, currentEdge);
 
         const adjacentEdges: Array<Edge<T>> = this.getEdges().filter(
           (edge) =>
