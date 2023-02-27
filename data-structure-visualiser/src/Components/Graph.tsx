@@ -15,8 +15,8 @@ type graphEvent =
   | "runPrimsEvent";
 
 type algorithmMap = {
-  [key:string]: () => void
-}  
+  [key: string]: () => void;
+};
 
 function GraphVisualisation() {
   const [graph, setGraph] = useState(new Graph());
@@ -42,28 +42,26 @@ function GraphVisualisation() {
     Vertex<string> | undefined
   >(undefined);
 
-  
-
-  const algorithms:algorithmMap = {
-    'Breadth First Search': () => {
+  const algorithms: algorithmMap = {
+    "Breadth First Search": () => {
       refreshSetActions();
       setCurrentEvent("runBFSEvent");
       setMessage("Select starting vertex");
     },
-    'Depth First Search': () => {
+    "Depth First Search": () => {
       refreshSetActions();
       setCurrentEvent("runDFSEvent");
       setMessage("Select starting vertex");
     },
-    "Dijkstras":() => {
-      refreshSetActions()
-      setCurrentEvent('runDijkstrasEvent')
-      setMessage('Select starting vertex')
+    Dijkstras: () => {
+      refreshSetActions();
+      setCurrentEvent("runDijkstrasEvent");
+      setMessage("Select starting vertex");
     },
-    'Minimum Spanning Tree':() => {
-      refreshSetActions()
-      setCurrentEvent('runPrimsEvent')
-    }
+    "Minimum Spanning Tree": () => {
+      refreshSetActions();
+      setCurrentEvent("runPrimsEvent");
+    },
   };
 
   const clickBehaviors = {
@@ -132,39 +130,12 @@ function GraphVisualisation() {
     },
     // add more click behaviors here
     runBFSEvent: (event: React.MouseEvent<HTMLDivElement>) => {
-      
-      const clickDiv = event.target as HTMLDivElement;
-      const clickedDivId = clickDiv.id;
-      const visitedVertices: Vertex<string>[] = [];
-      const visitedEdges: Edge<string>[] = [];
-      if (
-        [...graph.adjacencyList.keys()]
-          .map((vertex) => {
-            return vertex.value;
-          })
-          .includes(clickedDivId)
-      ) {
-        visitedVertices.push(
-          graph.getVertexById(clickedDivId) as Vertex<string>
-        );
-        setMessage(`Breadth First Search Path: ${clickedDivId}`);
-        graph.bfs(
-          graph.getVertexById(clickedDivId) as Vertex<string>,
-          (vertex, edge) => {
-            visitedVertices.push(vertex);
-            if (edge) {
-              visitedEdges.push(edge);
-            }
-            setMessage((prev) => {
-              return prev.concat(` -> ${vertex.value} `);
-            });
-          }
-        );
-        applyStylingToVisited(visitedEdges, visitedVertices);
-      }
+      runGraphTraversal(event,'BFS')
     },
 
-    runDFSEvent: (event: React.MouseEvent<HTMLDivElement>) => {},
+    runDFSEvent: (event: React.MouseEvent<HTMLDivElement>) => {
+      runGraphTraversal(event,'DFS')
+    },
 
     runPrimsEvent: (event: React.MouseEvent<HTMLDivElement>) => {},
     runDijkstrasEvent: (event: React.MouseEvent<HTMLDivElement>) => {},
@@ -281,6 +252,51 @@ function GraphVisualisation() {
     refreshSetActions();
   };
 
+  const runGraphTraversal = (
+    event: React.MouseEvent<HTMLDivElement>,
+    traversalType: "BFS" | "DFS"
+  ) => {
+    const clickDiv = event.target as HTMLDivElement;
+    const clickedDivId = clickDiv.id;
+    const visitedVertices: Vertex<string>[] = [];
+    const visitedEdges: Edge<string>[] = [];
+    if (
+      [...graph.adjacencyList.keys()]
+        .map((vertex) => {
+          return vertex.value;
+        })
+        .includes(clickedDivId)
+    ) {
+      visitedVertices.push(graph.getVertexById(clickedDivId) as Vertex<string>);
+      if (traversalType === "BFS") {
+        setMessage(`Breadth First Search Path: ${clickedDivId}`);
+        graph.bfs(
+          graph.getVertexById(clickedDivId) as Vertex<string>,
+          (vertex, edge) => {
+            visitedVertices.push(vertex);
+            if (edge) {
+              visitedEdges.push(edge);
+            }
+            setMessage((prev) => {
+              return prev.concat(` -> ${vertex.value} `);
+            });
+          }
+        );
+      } else if (traversalType === "DFS") {
+        setMessage(`Depth First Search Path: ${clickedDivId}`);
+        graph.dfs(graph.getVertexById(clickedDivId) as Vertex<string>, (vertex,edge) => {
+          visitedVertices.push(vertex)
+          visitedEdges.push(edge)
+          setMessage(prev => {
+            return prev.concat(` -> ${vertex.value}`)
+          })
+        })
+      }
+      console.log(visitedEdges,visitedVertices)
+      applyStylingToVisited(visitedEdges, visitedVertices);
+    }
+  };
+
   const handleEdgeRemovalEvent = (edge: Edge<string>) => {
     if (edge.directed) {
       graph.removeEdge(edge.vertex1, edge.vertex2);
@@ -386,12 +402,18 @@ function GraphVisualisation() {
             </button>
             <div className="absolute left-0  md:left-auto z-10 m-4 md:my-4 md:mx-0  md:-translate-x-[2rem] ">
               <ul className="w-[15rem] bg-zinc-600 text-center cursor-pointer font-bold space-y-3 p-4 rounded-md">
-               {Object.keys(algorithms).map((algorithm:string)=> {
-                
-                return <li onClick={() => {
-                  algorithms[algorithm]()
-                }}>{algorithm}</li>
-               })}
+                {Object.keys(algorithms).map((algorithm: string) => {
+                  return (
+                    <li
+                    key={algorithm}
+                      onClick={() => {
+                        algorithms[algorithm]();
+                      }}
+                    >
+                      {algorithm}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           </div>
