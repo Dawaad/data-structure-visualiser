@@ -43,7 +43,10 @@ function GraphVisualisation() {
     secondVertex: Vertex<string> | undefined;
   }>({ firstVertex: undefined, secondVertex: undefined });
   const [edgeValueMode, setEdgeValueMode] = useState<boolean>();
-
+  const [dijkstrasSelected, setDijkstrasSelected] = useState<{
+    vertex1: Vertex<string> | undefined;
+    vertex2: Vertex<string> | undefined;
+  }>({ vertex1: undefined, vertex2: undefined });
   const algorithms: algorithmMap = {
     "Breadth First Search": () => {
       refreshSetActions();
@@ -67,16 +70,17 @@ function GraphVisualisation() {
   };
 
   useEffect(() => {
-    console.log(graph.adjacencyList);
-
     if (edgeVertexSelect.secondVertex) {
-      if(!graph.doesEdgeExist(edgeVertexSelect.firstVertex as Vertex<string>, edgeVertexSelect.secondVertex)){
-
+      if (
+        !graph.doesEdgeExist(
+          edgeVertexSelect.firstVertex as Vertex<string>,
+          edgeVertexSelect.secondVertex
+        )
+      ) {
         setEdgeValueMode(true);
-      }
-      else{
-        setMessage("Edge already exists")
-        refreshSelected()
+      } else {
+        setMessage("Edge already exists");
+        refreshSelected();
       }
     }
   });
@@ -85,7 +89,7 @@ function GraphVisualisation() {
     addEdgeEvent: (event: React.MouseEvent<HTMLDivElement>) => {
       const clickedDiv = event.target as HTMLDivElement;
       const clickedDivId = clickedDiv.id;
-      console.log(clickedDivId);
+
       if (
         [...graph.adjacencyList.keys()]
           .map((vertex) => {
@@ -137,7 +141,9 @@ function GraphVisualisation() {
     },
 
     runPrimsEvent: (event: React.MouseEvent<HTMLDivElement>) => {},
-    runDijkstrasEvent: (event: React.MouseEvent<HTMLDivElement>) => {},
+    runDijkstrasEvent: (event: React.MouseEvent<HTMLDivElement>) => {
+      runDijkstrasFirstVertex(event);
+    },
     none: undefined,
   };
 
@@ -146,7 +152,11 @@ function GraphVisualisation() {
       firstVertex: undefined,
       secondVertex: undefined,
     });
-    clearAllStyling()
+    setDijkstrasSelected({
+      vertex1: undefined,
+      vertex2: undefined,
+    });
+    clearAllStyling();
   };
 
   const refreshSetActions = () => {
@@ -188,12 +198,10 @@ function GraphVisualisation() {
     visitedEdges: Edge<string>[],
     visitedVertices: Vertex<string>[]
   ) => {
-    console.log(visitedVertices);
-    console.log(visitedEdges);
     type VertexOrEdge = Vertex<string> | Edge<string>;
     const combinedArrays: VertexOrEdge[] = [];
     const maxLength = Math.max(visitedEdges.length, visitedVertices.length);
-
+    console.log('Applying Styling to Visited Vertices and Edges')
     for (let i = 0; i < maxLength; i++) {
       if (i < visitedVertices.length) {
         combinedArrays.push(visitedVertices[i]);
@@ -202,12 +210,11 @@ function GraphVisualisation() {
         combinedArrays.push(visitedEdges[i]);
       }
     }
-
+    console.log(combinedArrays)
     setGraphAnimationRunning(true);
 
     combinedArrays.forEach((item: VertexOrEdge, index: number) => {
       setTimeout(() => {
-        console.log(currentEvent);
         if (currentEvent === "runBFSEvent" || currentEvent === "runDFSEvent") {
           if (item instanceof Vertex) {
             document.getElementById(item.value)?.classList.add("bg-blue-400");
@@ -255,6 +262,61 @@ function GraphVisualisation() {
     refreshSetActions();
   };
 
+  const runDijkstrasFirstVertex = (event: React.MouseEvent<HTMLDivElement>) => {
+    const clickedDiv = event.target as HTMLDivElement;
+    const clickedDivId = clickedDiv.id;
+
+    if (
+      [...graph.adjacencyList.keys()]
+        .map((vertex) => {
+          return vertex.value;
+        })
+        .includes(clickedDivId)
+    ) {
+      
+      if (!dijkstrasSelected.vertex1) {
+        setDijkstrasSelected((prev) => {
+          return {
+            ...prev,
+            vertex1: graph.getVertexById(clickedDivId) as Vertex<string>,
+          };
+        });
+        setMessage("Select the end vertex");
+      } else {
+        let vertex2 = graph.getVertexById(clickedDivId) as Vertex<string>;
+
+        const dijkstrasResponse = graph.dijkstra(
+          dijkstrasSelected.vertex1,
+          vertex2
+        );
+        console.log(dijkstrasResponse);
+        refreshSelected();
+        if (!dijkstrasResponse) {
+          return;
+        }
+        const { distances, path, edges } = dijkstrasResponse;
+
+        if(distances.get(vertex2) === Infinity){
+          setMessage(`There is no path from Vertex ${dijkstrasSelected.vertex1.value} to Vertex ${vertex2.value}`);
+          return;
+        }
+
+        setMessage(
+          `The shortest path from Vertex ${
+            dijkstrasSelected.vertex1.value
+          } to Vertex ${vertex2.value} is: ${path
+            .map((vertex) => {
+              return vertex.value;
+            })
+            .join(" -> ")} with a distance of ${distances.get(vertex2)}`
+        );
+        applyStylingToVisited(edges, path);
+        setDijkstrasSelected({ vertex1: undefined, vertex2: undefined });
+      }
+
+    }
+  };
+
   const runGraphTraversal = (
     event: React.MouseEvent<HTMLDivElement>,
     traversalType: "BFS" | "DFS"
@@ -298,7 +360,7 @@ function GraphVisualisation() {
           }
         );
       }
-      console.log(visitedEdges, visitedVertices);
+
       applyStylingToVisited(visitedEdges, visitedVertices);
     }
   };
@@ -426,8 +488,8 @@ function GraphVisualisation() {
             <button onClick={() => {}} className="button relative">
               Run an Algorithm
             </button>
-            <div className="scale-0 group-hover:scale-100 origin-top transition-all duration-100 absolute left-0  md:left-auto z-10 m-4 md:my-4 md:mx-0  md:-translate-x-[2rem] ">
-              <ul className="w-[15rem] bg-zinc-600 text-center cursor-pointer font-bold space-y-3 p-4 rounded-md">
+            <div className="scale-0 group-hover:scale-100 origin-top transition-all duration-100 absolute left-0  md:left-auto z-10  md:py-4 md:mx-0  md:-translate-x-[2rem] ">
+              <ul className="w-[15rem] bg-zinc-700 text-center cursor-pointer font-bold space-y-3 p-4 rounded-lg">
                 {Object.keys(algorithms).map((algorithm: string) => {
                   return (
                     <li
@@ -435,7 +497,7 @@ function GraphVisualisation() {
                       onClick={() => {
                         algorithms[algorithm]();
                       }}
-                      className=""
+                      className="bg-inherit hover:bg-zinc-800 rounded-lg p-2"
                     >
                       {algorithm}
                     </li>
@@ -489,7 +551,13 @@ function GraphVisualisation() {
           </svg>
         </div>
       </section>
-      {edgeValueMode ? <AddEdge callback={handleCreateEdge} /> : null}
+      {edgeValueMode ? (
+        <AddEdge
+          vertex1={edgeVertexSelect.firstVertex}
+          vertex2={edgeVertexSelect.secondVertex}
+          callback={handleCreateEdge}
+        />
+      ) : null}
     </div>
   );
 }

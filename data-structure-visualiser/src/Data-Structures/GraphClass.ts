@@ -213,4 +213,100 @@ export class Graph<T> {
   compareEdges(a: Edge<T>, b: Edge<T>) {
     return a.weight - b.weight;
   }
+
+  //write dijkstras algorithm using vertexes and edges class
+  // dijkstra(startVertex: Vertex<T>): Map<Vertex<T>, number> {
+  //   const distances = new Map<Vertex<T>, number>();
+  //   const pq = new PriorityQueue<Vertex<T>>();
+  
+  //   // set all distances to infinity, except starting vertex
+  //   for (const vertex of this.getVertices()) {
+  //     distances.set(vertex, vertex === startVertex ? 0 : Infinity);
+  //     pq.enqueue(vertex, distances.get(vertex)!);
+  //   }
+  
+  //   // visit vertices
+  //   while (!pq.isEmpty()) {
+  //     const currentVertex = pq.dequeue()!;
+  //     const currentDistance = distances.get(currentVertex)!;
+  
+  //     // check all neighbors of the current vertex
+  //     for (const edge of this.adjacencyList.get(currentVertex)!) {
+  //       const neighborVertex = edge.vertex1 === currentVertex ? edge.vertex2 : edge.vertex1;
+  
+  //       // calculate distance to neighbor
+  //       const distance = currentDistance + edge.weight;
+  
+  //       // update distances and priority queue
+  //       if (distance < distances.get(neighborVertex)!) {
+  //         distances.set(neighborVertex, distance);
+  //         pq.enqueue(neighborVertex, distance);
+  //       }
+  //     }
+  //   }
+  
+  //   return distances;
+  // }
+  dijkstra(startVertex: Vertex<T>, endVertex: Vertex<T>): { distances: Map<Vertex<T>, number>, path: Vertex<T>[], edges: Edge<T>[] } | null {
+    const distances = new Map<Vertex<T>, number>();
+    const previousVertices = new Map<Vertex<T>, Vertex<T>>();
+    const pq = new PriorityQueue<Vertex<T>>();
+  
+    // set all distances to infinity, except starting vertex
+    for (const vertex of this.getVertices()) {
+      distances.set(vertex, vertex === startVertex ? 0 : Infinity);
+      pq.enqueue(vertex, distances.get(vertex)!);
+    }
+  
+    // visit vertices
+    while (!pq.isEmpty()) {
+      const currentVertex = pq.dequeue()!;
+      const currentDistance = distances.get(currentVertex)!;
+  
+      if (currentVertex === endVertex) {
+        break;
+      }
+  
+      // check all neighbors of the current vertex
+      for (const edge of this.adjacencyList.get(currentVertex)!) {
+        const neighborVertex = edge.vertex1 === currentVertex ? edge.vertex2 : edge.vertex1;
+  
+        // calculate distance to neighbor
+        const distance = currentDistance + edge.weight;
+  
+        // update distances and previous vertices
+        if (distance < distances.get(neighborVertex)!) {
+          distances.set(neighborVertex, distance);
+          previousVertices.set(neighborVertex, currentVertex);
+          pq.enqueue(neighborVertex, distance);
+        }
+      }
+      
+    }
+  
+    // // if end vertex was not reached, there is no path
+    // if (!previousVertices.has(endVertex)) {
+    //   return null;
+    // }
+  
+    // reconstruct path from start vertex to end vertex
+    const path: Vertex<T>[] = [];
+    const edges: Edge<T>[] = [];
+    let currentVertex: Vertex<T> | undefined = endVertex;
+    while (currentVertex) {
+      path.unshift(currentVertex);
+      const previousVertex = previousVertices.get(currentVertex);
+      if (previousVertex) {
+        const edge = this.getEdge(currentVertex, previousVertex);
+        if (edge) {
+          edges.unshift(edge[0]);
+        }
+      }
+      currentVertex = previousVertex;
+    }
+  
+    return { distances, path, edges };
+  }
+  
+
 }
