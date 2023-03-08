@@ -214,39 +214,7 @@ export class Graph<T> {
     return a.weight - b.weight;
   }
 
-  //write dijkstras algorithm using vertexes and edges class
-  // dijkstra(startVertex: Vertex<T>): Map<Vertex<T>, number> {
-  //   const distances = new Map<Vertex<T>, number>();
-  //   const pq = new PriorityQueue<Vertex<T>>();
   
-  //   // set all distances to infinity, except starting vertex
-  //   for (const vertex of this.getVertices()) {
-  //     distances.set(vertex, vertex === startVertex ? 0 : Infinity);
-  //     pq.enqueue(vertex, distances.get(vertex)!);
-  //   }
-  
-  //   // visit vertices
-  //   while (!pq.isEmpty()) {
-  //     const currentVertex = pq.dequeue()!;
-  //     const currentDistance = distances.get(currentVertex)!;
-  
-  //     // check all neighbors of the current vertex
-  //     for (const edge of this.adjacencyList.get(currentVertex)!) {
-  //       const neighborVertex = edge.vertex1 === currentVertex ? edge.vertex2 : edge.vertex1;
-  
-  //       // calculate distance to neighbor
-  //       const distance = currentDistance + edge.weight;
-  
-  //       // update distances and priority queue
-  //       if (distance < distances.get(neighborVertex)!) {
-  //         distances.set(neighborVertex, distance);
-  //         pq.enqueue(neighborVertex, distance);
-  //       }
-  //     }
-  //   }
-  
-  //   return distances;
-  // }
   dijkstra(startVertex: Vertex<T>, endVertex: Vertex<T>): { distances: Map<Vertex<T>, number>, path: Vertex<T>[], edges: Edge<T>[] } | null {
     const distances = new Map<Vertex<T>, number>();
     const previousVertices = new Map<Vertex<T>, Vertex<T>>();
@@ -283,11 +251,7 @@ export class Graph<T> {
       }
       
     }
-  
-    // // if end vertex was not reached, there is no path
-    // if (!previousVertices.has(endVertex)) {
-    //   return null;
-    // }
+ 
   
     // reconstruct path from start vertex to end vertex
     const path: Vertex<T>[] = [];
@@ -307,6 +271,61 @@ export class Graph<T> {
   
     return { distances, path, edges };
   }
+
+  checkIfDirectedEdgesExist() {
+    this.getEdges().forEach(edge => {
+      if(edge.directed) return true
+    })
+  }
   
+
+  primsMST(startVertex: Vertex<T>): Graph<T>  {
+    const mst = new Graph<T>();
+    const visited = new Set<Vertex<T>>();
+    const pq = new PriorityQueue<Edge<T>>();
+  
+    visited.add(startVertex);
+    for (const edge of this.adjacencyList.get(startVertex)!) {
+      pq.enqueue(edge, edge.weight);
+    }
+  
+    while (!pq.isEmpty()) {
+      const currentEdge = pq.dequeue()!;
+      const vertex1 = currentEdge.vertex1;
+      const vertex2 = currentEdge.vertex2;
+  
+      if (
+        visited.has(vertex1) &&
+        visited.has(vertex2) &&
+        mst.doesEdgeExist(vertex1, vertex2)
+      ) {
+        continue;
+      }
+  
+      visited.add(vertex1);
+      visited.add(vertex2);
+      mst.addVertex(vertex1);
+      mst.addVertex(vertex2);
+      mst.addEdge(vertex1, vertex2, currentEdge.weight, false, currentEdge.id);
+  
+      for (const edge of this.adjacencyList.get(vertex1)!) {
+        if (!visited.has(edge.vertex2)) {
+          pq.enqueue(edge, edge.weight);
+        }
+      }
+  
+      for (const edge of this.adjacencyList.get(vertex2)!) {
+        if (!visited.has(edge.vertex2)) {
+          pq.enqueue(edge, edge.weight);
+        }
+      }
+    }
+  
+    return mst;
+  }
+  
+  
+
+   
 
 }
