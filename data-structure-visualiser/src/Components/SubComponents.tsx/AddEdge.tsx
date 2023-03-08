@@ -9,12 +9,10 @@ interface addEdgeProps {
 function AddEdge({ callback, vertex1, vertex2 }: addEdgeProps) {
   const [weight, setWeight] = useState<number>(0);
 
-  useEffect(() => {
-    console.log(weight);
-  });
+  
   return (
     <div className="w-screen h-screen bg-black bg-opacity-70 absolute top-0 left-0 flex items-center justify-center text-zinc-900 font-bold">
-      <div className="w-[20rem] md:w-[30rem] h-[12.5rem] bg-zinc-300 rounded-xl grid grid-rows-4 shadow-md">
+      <div className="w-[30rem] h-[12.5rem] bg-zinc-300 rounded-xl grid grid-rows-4 shadow-md">
         <div className="row-span-3">
           <h1 className="flex justify-center text-2xl px-2 pt-2">Add Edge</h1>
 
@@ -23,7 +21,7 @@ function AddEdge({ callback, vertex1, vertex2 }: addEdgeProps) {
             <p className="mx-3">to</p>
             <p className="font-semibold text-xl">Vertex {vertex2?.value}</p>
           </h2>
-          <div className="flex  items-baseline justify-center mx-4 my-2">
+          <div className="flex items-center justify-center mx-4 my-2">
             <span>Weight: </span>
             <input
               className="bg-zinc-100 h-10 rounded-lg border-2 border-zinc-900 mx-4 p-3"
