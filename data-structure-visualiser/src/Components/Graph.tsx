@@ -66,6 +66,7 @@ function GraphVisualisation() {
     "Minimum Spanning Tree": () => {
       refreshSetActions();
       setCurrentEvent("runPrimsEvent");
+      setMessage('Select the starting vertex')
     },
   };
 
@@ -140,9 +141,11 @@ function GraphVisualisation() {
       runGraphTraversal(event, "DFS");
     },
 
-    runPrimsEvent: (event: React.MouseEvent<HTMLDivElement>) => {},
+    runPrimsEvent: (event: React.MouseEvent<HTMLDivElement>) => {
+      runPrimsTraversal(event)
+    },
     runDijkstrasEvent: (event: React.MouseEvent<HTMLDivElement>) => {
-      runDijkstrasFirstVertex(event);
+      runDijkstrasTraversal(event);
     },
     none: undefined,
   };
@@ -215,7 +218,7 @@ function GraphVisualisation() {
 
     combinedArrays.forEach((item: VertexOrEdge, index: number) => {
       setTimeout(() => {
-        if (currentEvent === "runBFSEvent" || currentEvent === "runDFSEvent") {
+        if (currentEvent === "runBFSEvent" || currentEvent === "runDFSEvent" || currentEvent === "runDijkstrasEvent") {
           if (item instanceof Vertex) {
             document.getElementById(item.value)?.classList.add("bg-blue-400");
             document
@@ -251,7 +254,7 @@ function GraphVisualisation() {
       setTimeout(() => {
         clearAllStyling();
         setGraphAnimationRunning(false);
-      }, 350 * combinedArrays.length + 1000);
+      }, 350 * combinedArrays.length + 1000)
     });
   };
 
@@ -262,7 +265,19 @@ function GraphVisualisation() {
     refreshSetActions();
   };
 
-  const runDijkstrasFirstVertex = (event: React.MouseEvent<HTMLDivElement>) => {
+  const runPrimsTraversal = (event: React.MouseEvent<HTMLDivElement>) => {
+      const clickedDiv = event.target as HTMLDivElement;
+      const clickDivID = clickedDiv.id;
+      //check to see if graph contains any directed Edges, 
+      const selected = graph.getVertexById(clickDivID);
+      if (!selected) return 
+
+      const primsResponse = graph.primsMST(selected);
+      console.log(primsResponse.getAdjacencyList())
+      
+  }
+
+  const runDijkstrasTraversal = (event: React.MouseEvent<HTMLDivElement>) => {
     const clickedDiv = event.target as HTMLDivElement;
     const clickedDivId = clickedDiv.id;
 
@@ -488,7 +503,7 @@ function GraphVisualisation() {
             <button onClick={() => {}} className="button relative">
               Run an Algorithm
             </button>
-            <div className="scale-0 group-hover:scale-100 origin-top transition-all duration-100 absolute left-0  md:left-auto z-10  md:py-4 md:mx-0  md:-translate-x-[2rem] ">
+            <div className="scale-0 group-hover:scale-100 origin-top transition-all duration-100 absolute left-auto z-10 py-4 mx-0 -translate-x-[2rem] ">
               <ul className="w-[15rem] bg-zinc-700 text-center cursor-pointer font-bold space-y-3 p-4 rounded-lg">
                 {Object.keys(algorithms).map((algorithm: string) => {
                   return (
@@ -513,7 +528,7 @@ function GraphVisualisation() {
         </div>
       </div>
       <div className="flex justify-center ">
-        <div className="h-[4rem] w-[110rem] bg-zinc-200 bg-opacity-[0.55] rounded-lg border-2 border-zinc-900 m-2  text-zinc-900 font-bold flex items-center justify-center">
+        <div className="h-[4rem] w-[110rem] px-2 bg-zinc-200 bg-opacity-[0.55] rounded-lg border-2 border-zinc-900 m-2  text-zinc-900 font-bold flex items-center justify-center">
           {message}
         </div>
       </div>
